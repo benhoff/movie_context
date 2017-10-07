@@ -1,11 +1,18 @@
 import praw
+import string
 from configparser import ConfigParser
 import requests
 import pprint
 import code
 import pickle
+import regex as re
 
 from lossy_count import LossyCount
+
+
+def _clean_text(text: str):
+    text = text.lower()
+    return re.sub(r"\p{P}+", "", text)
 
 
 def _recursive_reply_handle(replies: dict, lossy_count: LossyCount, total_count: int):
@@ -17,7 +24,7 @@ def _recursive_reply_handle(replies: dict, lossy_count: LossyCount, total_count:
         # keys include `kind` and `data`. We want data
         body = comment.get('body')
 
-        if body is None or body == '.':
+        if body is None:
             continue
 
         if comment.get('replies'):
@@ -25,6 +32,10 @@ def _recursive_reply_handle(replies: dict, lossy_count: LossyCount, total_count:
 
         if len(body) > 60:
             continue
+        body = _clean_text(body)
+        if body == '':
+            continue
+
         print(body)
         lossy_count[body] = 1
 
@@ -51,6 +62,9 @@ def _loop(reddit: praw.Reddit, lossy_count: LossyCount, total_count: int):
             if body is None:
                 continue
             if len(body) > 60:
+                continue
+            body = _clean_text(body)
+            if body == '':
                 continue
             print(body)
             lossy_count[body] = 1

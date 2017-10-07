@@ -22,6 +22,7 @@ setup(
     install_requires=[
         'praw',
         'python-Levenshtein',
+        'regex',
         ],
 
     extras_require={
